@@ -1,6 +1,5 @@
-// Import the functions you need from the SDKs you need
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-app.js";
-import { getAuth, createUserWithEmailAndPassword  } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-auth.js";
+import { getAuth, createUserWithEmailAndPassword, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.4/firebase-auth.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyBKUNTUc_J0o95u1meNUw_V7X4YlkJ0Yhk",
@@ -14,21 +13,48 @@ const firebaseConfig = {
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
-const auth = getAuth();
+const auth = getAuth(app);
 
-const email = document.getElementById('email')
-const password = document.getElementById('password')
-const signup_btn = document.getElementById('signup_btn')
-
-
-signup_btn.addEventListener("click",createUserWithEmailAndPassword(auth, email.value, password.value)
-  .then((userCredential) => {
-    // Signed up 
-    const user = userCredential.user;
+// Monitor authentication state
+onAuthStateChanged(auth, (user) => {
+  if (user) {
+    console.log('User is signed in');
+    const uid = user.uid;
     // ...
-  })
-  .catch((error) => {
-    const errorCode = error.code;
-    const errorMessage = error.message;
-    // ..
-  }))
+  } else {
+    // User is signed out
+    console.log('User is signed out');
+    // ...
+  }
+});
+
+const email = document.getElementById('email');
+const password = document.getElementById('password');
+const signup_btn = document.getElementById('signup_btn');
+
+signup_btn.addEventListener("click", (e) => {
+  e.preventDefault();
+  
+  if (email.value && password.value) {
+    createUserWithEmailAndPassword(auth, email.value, password.value)
+      .then((userCredential) => {
+        // Signed up 
+        console.log("Signed up");
+        const user = userCredential.user;
+        console.log("User =>", user);
+
+        // Redirect to another page
+        window.location.href = '/ecom-web/index.html';
+      })
+      .catch((error) => {
+        const errorCode = error.code;
+        const errorMessage = error.message;
+        console.error(`Error [${errorCode}]: ${errorMessage}`);
+        
+        // Display a user-friendly error message
+        alert("Failed to sign up: " + errorMessage);
+      });
+  } else {
+    alert("Please enter both email and password.");
+  }
+});
